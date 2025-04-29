@@ -70,15 +70,15 @@ BlockDeque<T>::~BlockDeque()
 template <class T>
 void BlockDeque<T>::clear()
 {
-    std::lock_guard < std::mutex >> locker(mtx_);
-    deq.clear();
+    std::lock_guard<std::mutex> locker(mtx_);
+    deq_.clear();
 }
 
 template <class T>
 bool BlockDeque<T>::empty()
 {
-    std::lock_guard < std::mutex >> locker(mtx_);
-    return deq.empty();
+    std::lock_guard<std::mutex> locker(mtx_);
+    return deq_.empty();
 }
 
 template <class T>
@@ -92,7 +92,7 @@ template <class T>
 void BlockDeque<T>::Close()
 {
     {
-        std::lock_guard < std::mutex >> locker(mtx_);
+        std::lock_guard<std::mutex> locker(mtx_);
         deq_.clear();
         isClose_ = true;
     }
