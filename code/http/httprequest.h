@@ -56,6 +56,7 @@ class HttpRequest
     */
 
 private:
+    // 事实上这里的Parse过程是一个有限状态机的问题
     bool ParseRequestLine_(const std::string &line);
     void ParseHeader_(const std::string &line);
     void ParseBody_(const std::string &line);
