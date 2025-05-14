@@ -58,6 +58,7 @@
         "bitset": "cpp",
         "unordered_set": "cpp",
         "regex": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "cinttypes": "cpp"
     }
 }
