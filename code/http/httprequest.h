@@ -14,6 +14,7 @@
 
 class HttpRequest
 {
+public:
     enum PARSE_STATE
     {
         REQUEST_LINE,
