@@ -11,4 +11,4 @@
 *.1
 *.log
 *.exe
-.vscode/
+/.vscode
