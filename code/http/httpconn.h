@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HTTP_CONN_H
+#define HTTP_CONN_H
 
 #include <sys/types.h>
 #include <sys/uio.h>   // readv/writev
@@ -60,9 +61,11 @@ private:
     int iovCnt_;
     struct iovec iov_[2];
 
-    Buffer readBuff_;
-    Buffer writeBuff_;
+    Buffer readBuff_;  // 读缓冲区
+    Buffer writeBuff_; // 写缓冲区
 
     HttpRequest request_;
     HttpResponse response_;
 };
+
+#endif // HTTP_CONN_H

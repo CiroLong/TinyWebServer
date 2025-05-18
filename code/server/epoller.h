@@ -1,14 +1,13 @@
-#pragma once
+#ifndef EPOLLER_H
+#define EPOLLER_H
 
 #include <sys/epoll.h> //epoll_ctl()
 #include <fcntl.h>     // fcntl()
-
-#include <unistd.h> //close()
-#include <assert.h>
+#include <unistd.h>    // close()
+#include <assert.h>    // close()
 #include <vector>
 #include <errno.h>
 
-// Epoller 封装底层的epoll实现
 class Epoller
 {
 public:
@@ -22,7 +21,7 @@ public:
 
     bool DelFd(int fd);
 
-    int Wait(int timeoutMS = -1);
+    int Wait(int timeoutMs = -1);
 
     int GetEventFd(size_t i) const;
 
@@ -30,5 +29,8 @@ public:
 
 private:
     int epollFd_;
+
     std::vector<struct epoll_event> events_;
 };
+
+#endif // EPOLLER_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HTTP_REQUEST_H
+#define HTTP_REQUEST_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -57,7 +58,6 @@ public:
     */
 
 private:
-    // 事实上这里的Parse过程是一个有限状态机的问题
     bool ParseRequestLine_(const std::string &line);
     void ParseHeader_(const std::string &line);
     void ParseBody_(const std::string &line);
@@ -77,3 +77,5 @@ private:
     static const std::unordered_map<std::string, int> DEFAULT_HTML_TAG;
     static int ConverHex(char ch);
 };
+
+#endif // HTTP_REQUEST_H

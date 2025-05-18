@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WEBSERVER_H
+#define WEBSERVER_H
 
 #include <unordered_map>
 #include <fcntl.h>  // fcntl()
@@ -52,7 +53,7 @@ private:
 
     int port_;
     bool openLinger_;
-    int timeoutMS_;
+    int timeoutMS_; /* 毫秒MS */
     bool isClose_;
     int listenFd_;
     char *srcDir_;
@@ -65,3 +66,5 @@ private:
     std::unique_ptr<Epoller> epoller_;
     std::unordered_map<int, HttpConn> users_;
 };
+
+#endif // WEBSERVER_H

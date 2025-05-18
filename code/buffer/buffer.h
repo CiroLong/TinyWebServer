@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef BUFFER_H
+#define BUFFER_H
 #include <cstring> //perror
 #include <iostream>
 #include <unistd.h>  // write
@@ -7,16 +7,15 @@
 #include <vector>    //readv
 #include <atomic>
 #include <assert.h>
-
 class Buffer
 {
 public:
-    Buffer(int initBufferSize = 1024); // 构造函数
-    ~Buffer() = default;               // 默认析构函数
+    Buffer(int initBuffSize = 1024);
+    ~Buffer() = default;
 
-    size_t WritableBytes() const;    // 可写入字节数
-    size_t ReadableBytes() const;    // 可读取字节数
-    size_t PrependableBytes() const; //
+    size_t WritableBytes() const;
+    size_t ReadableBytes() const;
+    size_t PrependableBytes() const;
 
     const char *Peek() const;
     void EnsureWriteable(size_t len);
@@ -31,7 +30,6 @@ public:
     const char *BeginWriteConst() const;
     char *BeginWrite();
 
-    // 重载Append方法
     void Append(const std::string &str);
     void Append(const char *str, size_t len);
     void Append(const void *data, size_t len);
@@ -44,10 +42,10 @@ private:
     char *BeginPtr_();
     const char *BeginPtr_() const;
     void MakeSpace_(size_t len);
-    // 内部数据结构
 
-    std::vector<char>
-        buffer_;
+    std::vector<char> buffer_;
     std::atomic<std::size_t> readPos_;
     std::atomic<std::size_t> writePos_;
 };
+
+#endif // BUFFER_H

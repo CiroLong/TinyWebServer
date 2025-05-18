@@ -1,6 +1,7 @@
 #include "httprequest.h"
+using namespace std;
 
-const std::unordered_set<std::string> HttpRequest::DEFAULT_HTML{
+const unordered_set<string> HttpRequest::DEFAULT_HTML{
     "/index",
     "/register",
     "/login",
@@ -8,12 +9,12 @@ const std::unordered_set<std::string> HttpRequest::DEFAULT_HTML{
     "/video",
     "/picture",
 };
-const std::unordered_map<std::string, int> DEFAULT_HTML_TAG{
+
+const unordered_map<string, int> HttpRequest::DEFAULT_HTML_TAG{
     {"/register.html", 0},
     {"/login.html", 1},
 };
 
-// 初始化
 void HttpRequest::Init()
 {
     method_ = path_ = version_ = body_ = "";
@@ -22,7 +23,15 @@ void HttpRequest::Init()
     post_.clear();
 }
 
-// 有限状态机解析
+bool HttpRequest::IsKeepAlive() const
+{
+    if (header_.count("Connection") == 1)
+    {
+        return header_.find("Connection")->second == "keep-alive" && version_ == "1.1";
+    }
+    return false;
+}
+
 bool HttpRequest::parse(Buffer &buff)
 {
     const char CRLF[] = "\r\n";
@@ -30,9 +39,9 @@ bool HttpRequest::parse(Buffer &buff)
     {
         return false;
     }
-    while (buff.ReadableBytes() > 0 && state_ != FINISH)
+    while (buff.ReadableBytes() && state_ != FINISH)
     {
-        const char *lineEnd = std::search(buff.Peek(), buff.BeginWriteConst(), CRLF, CRLF + 2);
+        const char *lineEnd = search(buff.Peek(), buff.BeginWriteConst(), CRLF, CRLF + 2);
         std::string line(buff.Peek(), lineEnd);
         switch (state_)
         {
@@ -66,74 +75,8 @@ bool HttpRequest::parse(Buffer &buff)
     return true;
 }
 
-std::string HttpRequest::path() const
-{
-    return path_;
-}
-
-std::string &HttpRequest::path()
-{
-    return path_;
-}
-
-std::string HttpRequest::method() const
-{
-    return method_;
-}
-
-std::string HttpRequest::version() const
-{
-    return version_;
-}
-
-std::string HttpRequest::GetPost(const std::string &key) const
-{
-    assert(key != "");
-    if (post_.count(key) == 1)
-    {
-        return post_.find(key)->second;
-    }
-    return "";
-}
-
-std::string HttpRequest::GetPost(const char *key) const
-{
-    assert(key != nullptr);
-    if (post_.count(key) == 1)
-    {
-        return post_.find(key)->second;
-    }
-    return "";
-}
-
-// 检查请求行中是否Connection: keep-alive
-bool HttpRequest::IsKeepAlive() const
-{
-    if (header_.count("Connection") == 1)
-    {
-        return header_.find("Connection")->second == "keep-alive" && version_ == "1.1";
-    }
-    return false;
-}
-
-bool HttpRequest::ParseRequestLine_(const std::string &line)
-{
-    std::regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
-    std::smatch subMatch;
-    if (regex_match(line, subMatch, patten))
-    {
-        method_ = subMatch[1];
-        path_ = subMatch[2];
-        version_ = subMatch[3];
-        state_ = HEADERS;
-        return true;
-    }
-    LOG_ERROR("RequestLine Error");
-    return false;
-}
 void HttpRequest::ParsePath_()
 {
-    // 主页
     if (path_ == "/")
     {
         path_ = "/index.html";
@@ -151,10 +94,26 @@ void HttpRequest::ParsePath_()
     }
 }
 
-void HttpRequest::ParseHeader_(const std::string &line)
+bool HttpRequest::ParseRequestLine_(const string &line)
 {
-    std::regex patten("^([^:]*): ?(.*)$");
-    std::smatch subMatch;
+    regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
+    smatch subMatch;
+    if (regex_match(line, subMatch, patten))
+    {
+        method_ = subMatch[1];
+        path_ = subMatch[2];
+        version_ = subMatch[3];
+        state_ = HEADERS;
+        return true;
+    }
+    LOG_ERROR("RequestLine Error");
+    return false;
+}
+
+void HttpRequest::ParseHeader_(const string &line)
+{
+    regex patten("^([^:]*): ?(.*)$");
+    smatch subMatch;
     if (regex_match(line, subMatch, patten))
     {
         header_[subMatch[1]] = subMatch[2];
@@ -165,7 +124,7 @@ void HttpRequest::ParseHeader_(const std::string &line)
     }
 }
 
-void HttpRequest::ParseBody_(const std::string &line)
+void HttpRequest::ParseBody_(const string &line)
 {
     body_ = line;
     ParsePost_();
@@ -173,7 +132,15 @@ void HttpRequest::ParseBody_(const std::string &line)
     LOG_DEBUG("Body:%s, len:%d", line.c_str(), line.size());
 }
 
-// 对POST请求的请求行做特殊处理
+int HttpRequest::ConverHex(char ch)
+{
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return ch;
+}
+
 void HttpRequest::ParsePost_()
 {
     if (method_ == "POST" && header_["Content-Type"] == "application/x-www-form-urlencoded")
@@ -206,7 +173,7 @@ void HttpRequest::ParseFromUrlencoded_()
         return;
     }
 
-    std::string key, value;
+    string key, value;
     int num = 0;
     int n = body_.size();
     int i = 0, j = 0;
@@ -214,7 +181,6 @@ void HttpRequest::ParseFromUrlencoded_()
     for (; i < n; i++)
     {
         char ch = body_[i];
-        // 一些HTTP POST的处理逻辑
         switch (ch)
         {
         case '=':
@@ -248,25 +214,13 @@ void HttpRequest::ParseFromUrlencoded_()
     }
 }
 
-int HttpRequest::ConverHex(char ch)
-{
-    if (ch >= 'A' && ch <= 'F')
-        return ch - 'A' + 10;
-    if (ch >= 'a' && ch <= 'f')
-        return ch - 'a' + 10;
-    return ch;
-}
-
-// 特殊的用户验证逻辑
-bool HttpRequest::UserVerify(const std::string &name, const std::string &pwd, bool isLogin)
+bool HttpRequest::UserVerify(const string &name, const string &pwd, bool isLogin)
 {
     if (name == "" || pwd == "")
     {
         return false;
     }
     LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
-
-    // 这里链接到数据库 查询用户
     MYSQL *sql;
     SqlConnRAII(&sql, SqlConnPool::Instance());
     assert(sql);
@@ -297,7 +251,7 @@ bool HttpRequest::UserVerify(const std::string &name, const std::string &pwd, bo
     while (MYSQL_ROW row = mysql_fetch_row(res))
     {
         LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
-        std::string password(row[1]);
+        string password(row[1]);
         /* 注册行为 且 用户名未被使用*/
         if (isLogin)
         {
@@ -336,4 +290,43 @@ bool HttpRequest::UserVerify(const std::string &name, const std::string &pwd, bo
     SqlConnPool::Instance()->FreeConn(sql);
     LOG_DEBUG("UserVerify success!!");
     return flag;
+}
+
+std::string HttpRequest::path() const
+{
+    return path_;
+}
+
+std::string &HttpRequest::path()
+{
+    return path_;
+}
+std::string HttpRequest::method() const
+{
+    return method_;
+}
+
+std::string HttpRequest::version() const
+{
+    return version_;
+}
+
+std::string HttpRequest::GetPost(const std::string &key) const
+{
+    assert(key != "");
+    if (post_.count(key) == 1)
+    {
+        return post_.find(key)->second;
+    }
+    return "";
+}
+
+std::string HttpRequest::GetPost(const char *key) const
+{
+    assert(key != nullptr);
+    if (post_.count(key) == 1)
+    {
+        return post_.find(key)->second;
+    }
+    return "";
 }

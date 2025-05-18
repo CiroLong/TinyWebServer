@@ -1,5 +1,4 @@
 #include "httpconn.h"
-
 using namespace std;
 
 const char *HttpConn::srcDir;
@@ -11,14 +10,13 @@ HttpConn::HttpConn()
     fd_ = -1;
     addr_ = {0};
     isClose_ = true;
-}
+};
 
 HttpConn::~HttpConn()
 {
     Close();
-}
+};
 
-// 传入TCP conn fd
 void HttpConn::init(int fd, const sockaddr_in &addr)
 {
     assert(fd > 0);
@@ -31,17 +29,48 @@ void HttpConn::init(int fd, const sockaddr_in &addr)
     LOG_INFO("Client[%d](%s:%d) in, userCount:%d", fd_, GetIP(), GetPort(), (int)userCount);
 }
 
+void HttpConn::Close()
+{
+    response_.UnmapFile();
+    if (isClose_ == false)
+    {
+        isClose_ = true;
+        userCount--;
+        close(fd_);
+        LOG_INFO("Client[%d](%s:%d) quit, UserCount:%d", fd_, GetIP(), GetPort(), (int)userCount);
+    }
+}
+
+int HttpConn::GetFd() const
+{
+    return fd_;
+};
+
+struct sockaddr_in HttpConn::GetAddr() const
+{
+    return addr_;
+}
+
+const char *HttpConn::GetIP() const
+{
+    return inet_ntoa(addr_.sin_addr);
+}
+
+int HttpConn::GetPort() const
+{
+    return addr_.sin_port;
+}
+
 ssize_t HttpConn::read(int *saveErrno)
 {
     ssize_t len = -1;
     do
     {
         len = readBuff_.ReadFd(fd_, saveErrno);
-        if (len < 0)
+        if (len <= 0)
         {
             break;
         }
-
     } while (isET);
     return len;
 }
@@ -79,38 +108,6 @@ ssize_t HttpConn::write(int *saveErrno)
         }
     } while (isET || ToWriteBytes() > 10240);
     return len;
-}
-
-void HttpConn::Close()
-{
-    response_.UnmapFile();
-    if (isClose_ == false)
-    {
-        isClose_ = true;
-        userCount--;
-        close(fd_);
-        LOG_INFO("Client[%d](%s:%d) quit, UserCount:%d", fd_, GetIP(), GetPort(), (int)userCount);
-    }
-}
-
-int HttpConn::GetFd() const
-{
-    return fd_;
-}
-
-int HttpConn::GetPort() const
-{
-    return addr_.sin_port;
-}
-
-const char *HttpConn::GetIP() const
-{
-    return inet_ntoa(addr_.sin_addr); // network to ASCII
-}
-
-sockaddr_in HttpConn::GetAddr() const
-{
-    return addr_;
 }
 
 bool HttpConn::process()

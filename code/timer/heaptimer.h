@@ -1,7 +1,7 @@
-#pragma once
+#ifndef HEAP_TIMER_H
+#define HEAP_TIMER_H
 
 #include <queue>
-#include <vector>
 #include <unordered_map>
 #include <time.h>
 #include <algorithm>
@@ -26,16 +26,16 @@ struct TimerNode
         return expires < t.expires;
     }
 };
-
 class HeapTimer
 {
 public:
     HeapTimer() { heap_.reserve(64); }
+
     ~HeapTimer() { clear(); }
 
     void adjust(int id, int newExpires);
 
-    void add(int id, int timeout, const TimeoutCallBack &cb);
+    void add(int id, int timeOut, const TimeoutCallBack &cb);
 
     void doWork(int id);
 
@@ -48,9 +48,7 @@ public:
     int GetNextTick();
 
 private:
-    // 私有函数实现 堆的逻辑
-
-    void del_(size_t index);
+    void del_(size_t i);
 
     void siftup_(size_t i);
 
@@ -59,5 +57,8 @@ private:
     void SwapNode_(size_t i, size_t j);
 
     std::vector<TimerNode> heap_;
+
     std::unordered_map<int, size_t> ref_;
 };
+
+#endif // HEAP_TIMER_H
