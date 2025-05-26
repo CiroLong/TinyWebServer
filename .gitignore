@@ -13,3 +13,5 @@
 *.exe
 /.vscode/
 /resources/
+/build/
+/bin/
