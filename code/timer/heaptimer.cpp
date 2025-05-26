@@ -4,10 +4,8 @@ void HeapTimer::siftup_(size_t i)
 {
     assert(i >= 0 && i < heap_.size());
     size_t j = (i - 1) / 2;
-    while (j >= 0)
-    {
-        if (heap_[j] < heap_[i])
-        {
+    while (j >= 0) {
+        if (heap_[j] < heap_[i]) {
             break;
         }
         SwapNode_(i, j);
@@ -31,8 +29,7 @@ bool HeapTimer::siftdown_(size_t index, size_t n)
     assert(n >= 0 && n <= heap_.size());
     size_t i = index;
     size_t j = i * 2 + 1;
-    while (j < n)
-    {
+    while (j < n) {
         if (j + 1 < n && heap_[j + 1] < heap_[j])
             j++;
         if (heap_[i] < heap_[j])
@@ -44,26 +41,22 @@ bool HeapTimer::siftdown_(size_t index, size_t n)
     return i > index;
 }
 
-void HeapTimer::add(int id, int timeout, const TimeoutCallBack &cb)
+void HeapTimer::add(int id, int timeout, const TimeoutCallBack& cb)
 {
     assert(id >= 0);
     size_t i;
-    if (ref_.count(id) == 0)
-    {
+    if (ref_.count(id) == 0) {
         /* 新节点：堆尾插入，调整堆 */
         i = heap_.size();
         ref_[id] = i;
-        heap_.push_back({id, Clock::now() + MS(timeout), cb});
+        heap_.push_back({ id, Clock::now() + MS(timeout), cb });
         siftup_(i);
-    }
-    else
-    {
+    } else {
         /* 已有结点：调整堆 */
         i = ref_[id];
         heap_[i].expires = Clock::now() + MS(timeout);
         heap_[i].cb = cb;
-        if (!siftdown_(i, heap_.size()))
-        {
+        if (!siftdown_(i, heap_.size())) {
             siftup_(i);
         }
     }
@@ -72,8 +65,7 @@ void HeapTimer::add(int id, int timeout, const TimeoutCallBack &cb)
 void HeapTimer::doWork(int id)
 {
     /* 删除指定id结点，并触发回调函数 */
-    if (heap_.empty() || ref_.count(id) == 0)
-    {
+    if (heap_.empty() || ref_.count(id) == 0) {
         return;
     }
     size_t i = ref_[id];
@@ -90,11 +82,9 @@ void HeapTimer::del_(size_t index)
     size_t i = index;
     size_t n = heap_.size() - 1;
     assert(i <= n);
-    if (i < n)
-    {
+    if (i < n) {
         SwapNode_(i, n);
-        if (!siftdown_(i, n))
-        {
+        if (!siftdown_(i, n)) {
             siftup_(i);
         }
     }
@@ -115,15 +105,12 @@ void HeapTimer::adjust(int id, int timeout)
 void HeapTimer::tick()
 {
     /* 清除超时结点 */
-    if (heap_.empty())
-    {
+    if (heap_.empty()) {
         return;
     }
-    while (!heap_.empty())
-    {
+    while (!heap_.empty()) {
         TimerNode node = heap_.front();
-        if (std::chrono::duration_cast<MS>(node.expires - Clock::now()).count() > 0)
-        {
+        if (std::chrono::duration_cast<MS>(node.expires - Clock::now()).count() > 0) {
             break;
         }
         node.cb();
@@ -147,11 +134,9 @@ int HeapTimer::GetNextTick()
 {
     tick();
     size_t res = -1;
-    if (!heap_.empty())
-    {
+    if (!heap_.empty()) {
         res = std::chrono::duration_cast<MS>(heap_.front().expires - Clock::now()).count();
-        if (res < 0)
-        {
+        if (res < 0) {
             res = 0;
         }
     }

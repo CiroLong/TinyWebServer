@@ -62,6 +62,22 @@ CREATE TABLE user(
 - 端口、线程数、数据库参数等可在 `main.cpp` 中修改。
 - 静态资源目录为 `resources/`，可自行添加 html/css/js 文件。
 
+## 使用 CMake 编译
+
+1. 安装依赖（如未安装）：
+   - g++
+   - cmake
+   - MySQL 开发库（libmysqlclient-dev）
+
+2. 编译步骤：
+```bash
+mkdir -p build
+cd build
+cmake ..
+make
+```
+编译完成后，`../bin/server` 为主程序。
+
 ## 主要模块说明
 - **WebServer**：服务器主控类，负责 socket 初始化、事件循环、连接管理等。
 - **ThreadPool**：线程池，负责任务调度与并发处理。
@@ -72,7 +88,7 @@ CREATE TABLE user(
 - **Log**：日志系统，支持异步写入。
 
 ## 参考与致谢
-- 本项目参考了网络上多种高性能服务器设计思想，适合操作系统、网络编程、后端开发等相关课程学习。
+- 本项目参考了网络上多种高性能服务器设计思想，用于学习操作系统、网络编程、后端开发等相关知识。
 
 ## License
 MIT

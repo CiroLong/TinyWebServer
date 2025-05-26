@@ -1,15 +1,14 @@
 #ifndef EPOLLER_H
 #define EPOLLER_H
 
-#include <sys/epoll.h> //epoll_ctl()
-#include <fcntl.h>     // fcntl()
-#include <unistd.h>    // close()
-#include <assert.h>    // close()
-#include <vector>
+#include <assert.h> // close()
 #include <errno.h>
+#include <fcntl.h> // fcntl()
+#include <sys/epoll.h> //epoll_ctl()
+#include <unistd.h> // close()
+#include <vector>
 
-class Epoller
-{
+class Epoller {
 public:
     explicit Epoller(int maxEvent = 1024);
 
